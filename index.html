@@ -261,6 +261,19 @@
     </div>
 
     <div class="campo">
+      <label for="codigoManual">Captura manual de código</label>
+      <input
+        id="codigoManual"
+        type="text"
+        placeholder="Escribe el código si no se puede escanear"
+      />
+    </div>
+
+    <button class="btn btn-secondary" onclick="usarCodigoManual()">
+      Usar código manual
+    </button>
+
+    <div class="campo">
       <label for="cantidad">Cantidad</label>
       <input
         id="cantidad"
@@ -277,7 +290,7 @@
       <input
         id="usuario"
         type="text"
-        value="Humberto"
+        value="Usuario"
       />
     </div>
 
@@ -310,7 +323,7 @@
     function iniciarScanner() {
       if (scannerActivo) return;
 
-      if (API_URL === "PEGA_AQUI_TU_URL_DE_APPS_SCRIPT_EXEC") {
+      if (API_URL === "https://script.google.com/macros/s/AKfycbymuvjSW0X70bvMTYXPrVtwZ_zUppcD493UUawLc5Rkx1N5Wb_TLKF4JehyJrV0PUXXZg/exec") {
         mostrarMensaje("Falta pegar la URL de Apps Script en API_URL.", "error");
         return;
       }
@@ -348,6 +361,7 @@
         function(decodedText, decodedResult) {
           codigoActual = decodedText;
           document.getElementById("codigoLeido").textContent = decodedText;
+          document.getElementById("codigoManual").value = "";
           mostrarMensaje("Código escaneado correctamente.", "ok");
 
           if (navigator.vibrate) {
@@ -381,12 +395,29 @@
       });
     }
 
+    function usarCodigoManual() {
+      const codigoManual = document.getElementById("codigoManual").value.trim();
+
+      if (!codigoManual) {
+        mostrarMensaje("Introduce un código manualmente.", "error");
+        return;
+      }
+
+      codigoActual = codigoManual;
+      document.getElementById("codigoLeido").textContent = codigoManual;
+      mostrarMensaje("Código capturado manualmente.", "ok");
+
+      if (navigator.vibrate) {
+        navigator.vibrate(120);
+      }
+    }
+
     function guardarRegistro() {
       const cantidad = document.getElementById("cantidad").value;
       const usuario = document.getElementById("usuario").value.trim() || "Humberto";
 
       if (!codigoActual) {
-        mostrarMensaje("Primero escanea un código de barras.", "error");
+        mostrarMensaje("Primero escanea un código de barras o captúralo manualmente.", "error");
         return;
       }
 
@@ -415,7 +446,7 @@
             "Cantidad: " + respuesta.cantidad + "<br>" +
             "Usuario: " + respuesta.usuario;
 
-          document.getElementById("cantidad").value = "";
+          limpiarCamposDespuesDeGuardar();
 
         } else {
           mostrarMensaje(respuesta.mensaje, "error");
@@ -445,6 +476,13 @@
       document.body.appendChild(script);
     }
 
+    function limpiarCamposDespuesDeGuardar() {
+      codigoActual = "";
+      document.getElementById("codigoLeido").textContent = "Sin escanear";
+      document.getElementById("codigoManual").value = "";
+      document.getElementById("cantidad").value = "";
+    }
+
     function limpiarScriptJSONP(callbackName) {
       const script = document.getElementById("jsonp_" + callbackName);
 
@@ -462,9 +500,10 @@
     function limpiar() {
       codigoActual = "";
       document.getElementById("codigoLeido").textContent = "Sin escanear";
+      document.getElementById("codigoManual").value = "";
       document.getElementById("cantidad").value = "";
       document.getElementById("ultimo").style.display = "none";
-      mostrarMensaje("Captura limpia. Puedes escanear otro código.", "info");
+      mostrarMensaje("Captura limpia. Puedes escanear otro código o capturarlo manualmente.", "info");
     }
   </script>
 
