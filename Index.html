@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+
+  <title>App Escaneo de Códigos</title>
+
+  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      min-height: 100%;
+      font-family: Arial, sans-serif;
+      background: #0f172a;
+      color: #111827;
+    }
+
+    body {
+      padding: 12px;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 480px;
+      margin: 0 auto;
+      background: #ffffff;
+      border-radius: 18px;
+      padding: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+    }
+
+    .titulo {
+      text-align: center;
+      margin-bottom: 14px;
+    }
+
+    .titulo h1 {
+      margin: 0;
+      font-size: 22px;
+      color: #111827;
+    }
+
+    .titulo p {
+      margin: 5px 0 0;
+      font-size: 14px;
+      color: #6b7280;
+    }
+
+    .scanner-box {
+      width: 100%;
+      background: #111827;
+      border-radius: 16px;
+      overflow: hidden;
+      padding: 8px;
+      margin-bottom: 14px;
+    }
+
+    #reader {
+      width: 100%;
+      min-height: 260px;
+      border-radius: 12px;
+      overflow: hidden;
+      background: #000000;
+    }
+
+    #reader video {
+      width: 100% !important;
+      height: auto !important;
+      border-radius: 12px;
+    }
+
+    .btn {
+      width: 100%;
+      border: none;
+      border-radius: 14px;
+      padding: 15px;
+      font-size: 18px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    .btn-primary {
+      background: #2563eb;
+      color: white;
+    }
+
+    .btn-secondary {
+      background: #374151;
+      color: white;
+    }
+
+    .btn-danger {
+      background: #dc2626;
+      color: white;
+    }
+
+    .btn-success {
+      background: #16a34a;
+      color: white;
+    }
+
+    .btn:disabled {
+      background: #9ca3af;
+      cursor: not-allowed;
+    }
+
+    .campo {
+      margin-top: 12px;
+    }
+
+    label {
+      display: block;
+      font-size: 15px;
+      font-weight: bold;
+      margin-bottom: 6px;
+      color: #111827;
+    }
+
+    input {
+      width: 100%;
+      border: 1px solid #d1d5db;
+      border-radius: 12px;
+      padding: 14px;
+      font-size: 20px;
+      outline: none;
+    }
+
+    input:focus {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37,99,235,0.18);
+    }
+
+    .codigo-leido {
+      margin-top: 12px;
+      background: #eef2ff;
+      border: 1px solid #c7d2fe;
+      color: #1e3a8a;
+      padding: 12px;
+      border-radius: 12px;
+      font-size: 16px;
+      word-break: break-all;
+    }
+
+    .codigo-leido strong {
+      display: block;
+      margin-bottom: 5px;
+      color: #111827;
+    }
+
+    .mensaje {
+      display: none;
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: 12px;
+      font-weight: bold;
+      font-size: 15px;
+    }
+
+    .ok {
+      display: block;
+      background: #dcfce7;
+      color: #166534;
+      border: 1px solid #86efac;
+    }
+
+    .error {
+      display: block;
+      background: #fee2e2;
+      color: #991b1b;
+      border: 1px solid #fecaca;
+    }
+
+    .info {
+      display: block;
+      background: #e0f2fe;
+      color: #075985;
+      border: 1px solid #7dd3fc;
+    }
+
+    .ultimo {
+      display: none;
+      margin-top: 12px;
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      padding: 12px;
+      border-radius: 12px;
+      font-size: 14px;
+      color: #374151;
+    }
+
+    .fila-botones {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    @media (max-width: 420px) {
+      body {
+        padding: 8px;
+      }
+
+      .app {
+        padding: 14px;
+        border-radius: 14px;
+      }
+
+      .titulo h1 {
+        font-size: 20px;
+      }
+
+      #reader {
+        min-height: 230px;
+      }
+
+      input {
+        font-size: 18px;
+      }
+
+      .btn {
+        font-size: 16px;
+        padding: 14px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="app">
+    <div class="titulo">
+      <h1>Escaneo de Código</h1>
+      <p>Escanea, captura cantidad y guarda en Google Sheets</p>
+    </div>
+
+    <div class="scanner-box">
+      <div id="reader"></div>
+    </div>
+
+    <div class="fila-botones">
+      <button class="btn btn-primary" id="btnIniciar" onclick="iniciarScanner()">
+        Iniciar cámara
+      </button>
+
+      <button class="btn btn-danger" id="btnDetener" onclick="detenerScanner()" disabled>
+        Detener
+      </button>
+    </div>
+
+    <div class="codigo-leido">
+      <strong>Código leído:</strong>
+      <span id="codigoLeido">Sin escanear</span>
+    </div>
+
+    <div class="campo">
+      <label for="cantidad">Cantidad</label>
+      <input
+        id="cantidad"
+        type="number"
+        inputmode="decimal"
+        min="0"
+        step="any"
+        placeholder="Introduce cantidad"
+      />
+    </div>
+
+    <div class="campo">
+      <label for="usuario">Usuario</label>
+      <input
+        id="usuario"
+        type="text"
+        value="Humberto"
+      />
+    </div>
+
+    <button class="btn btn-success" id="btnGuardar" onclick="guardarRegistro()">
+      Guardar registro
+    </button>
+
+    <button class="btn btn-secondary" onclick="limpiar()">
+      Limpiar captura
+    </button>
+
+    <div id="mensaje" class="mensaje"></div>
+
+    <div id="ultimo" class="ultimo"></div>
+  </div>
+
+  <script>
+    const API_URL = "https://script.google.com/macros/s/AKfycbymuvjSW0X70bvMTYXPrVtwZ_zUppcD493UUawLc5Rkx1N5Wb_TLKF4JehyJrV0PUXXZg/exec";
+
+    let html5QrCode = null;
+    let scannerActivo = false;
+    let codigoActual = "";
+
+    function mostrarMensaje(texto, tipo) {
+      const mensaje = document.getElementById("mensaje");
+      mensaje.textContent = texto;
+      mensaje.className = "mensaje " + tipo;
+    }
+
+    function iniciarScanner() {
+      if (scannerActivo) return;
+
+      if (API_URL === "PEGA_AQUI_TU_URL_DE_APPS_SCRIPT_EXEC") {
+        mostrarMensaje("Falta pegar la URL de Apps Script en API_URL.", "error");
+        return;
+      }
+
+      html5QrCode = new Html5Qrcode("reader");
+
+      const config = {
+        fps: 10,
+        qrbox: function(viewfinderWidth, viewfinderHeight) {
+          const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
+          const width = Math.floor(minEdge * 0.90);
+          const height = Math.floor(width * 0.45);
+
+          return {
+            width: width,
+            height: height
+          };
+        },
+        formatsToSupport: [
+          Html5QrcodeSupportedFormats.QR_CODE,
+          Html5QrcodeSupportedFormats.CODE_128,
+          Html5QrcodeSupportedFormats.CODE_39,
+          Html5QrcodeSupportedFormats.CODE_93,
+          Html5QrcodeSupportedFormats.EAN_13,
+          Html5QrcodeSupportedFormats.EAN_8,
+          Html5QrcodeSupportedFormats.UPC_A,
+          Html5QrcodeSupportedFormats.UPC_E,
+          Html5QrcodeSupportedFormats.ITF
+        ]
+      };
+
+      html5QrCode.start(
+        { facingMode: "environment" },
+        config,
+        function(decodedText, decodedResult) {
+          codigoActual = decodedText;
+          document.getElementById("codigoLeido").textContent = decodedText;
+          mostrarMensaje("Código escaneado correctamente.", "ok");
+
+          if (navigator.vibrate) {
+            navigator.vibrate(120);
+          }
+        },
+        function(errorMessage) {
+          // No mostrar errores mientras la cámara busca el código.
+        }
+      ).then(function() {
+        scannerActivo = true;
+        document.getElementById("btnIniciar").disabled = true;
+        document.getElementById("btnDetener").disabled = false;
+        mostrarMensaje("Cámara activa. Apunta al código de barras.", "info");
+      }).catch(function(error) {
+        scannerActivo = false;
+        mostrarMensaje("No se pudo abrir la cámara: " + error, "error");
+      });
+    }
+
+    function detenerScanner() {
+      if (!html5QrCode || !scannerActivo) return;
+
+      html5QrCode.stop().then(function() {
+        scannerActivo = false;
+        document.getElementById("btnIniciar").disabled = false;
+        document.getElementById("btnDetener").disabled = true;
+        mostrarMensaje("Cámara detenida.", "info");
+      }).catch(function(error) {
+        mostrarMensaje("No se pudo detener la cámara: " + error, "error");
+      });
+    }
+
+    function guardarRegistro() {
+      const cantidad = document.getElementById("cantidad").value;
+      const usuario = document.getElementById("usuario").value.trim() || "Humberto";
+
+      if (!codigoActual) {
+        mostrarMensaje("Primero escanea un código de barras.", "error");
+        return;
+      }
+
+      if (!cantidad || Number(cantidad) <= 0) {
+        mostrarMensaje("Introduce una cantidad mayor a cero.", "error");
+        return;
+      }
+
+      document.getElementById("btnGuardar").disabled = true;
+      mostrarMensaje("Guardando registro...", "info");
+
+      const callbackName = "cb_" + Date.now();
+
+      window[callbackName] = function(respuesta) {
+        document.getElementById("btnGuardar").disabled = false;
+
+        if (respuesta.ok) {
+          mostrarMensaje(respuesta.mensaje, "ok");
+
+          document.getElementById("ultimo").style.display = "block";
+          document.getElementById("ultimo").innerHTML =
+            "<strong>Último registro guardado:</strong><br>" +
+            "ID: " + respuesta.id + "<br>" +
+            "Fecha: " + respuesta.fecha + " " + respuesta.hora + "<br>" +
+            "Código: " + respuesta.codigoBarras + "<br>" +
+            "Cantidad: " + respuesta.cantidad + "<br>" +
+            "Usuario: " + respuesta.usuario;
+
+          document.getElementById("cantidad").value = "";
+
+        } else {
+          mostrarMensaje(respuesta.mensaje, "error");
+        }
+
+        limpiarScriptJSONP(callbackName);
+      };
+
+      const url =
+        API_URL +
+        "?action=save" +
+        "&codigoBarras=" + encodeURIComponent(codigoActual) +
+        "&cantidad=" + encodeURIComponent(cantidad) +
+        "&usuario=" + encodeURIComponent(usuario) +
+        "&callback=" + encodeURIComponent(callbackName);
+
+      const script = document.createElement("script");
+      script.src = url;
+      script.id = "jsonp_" + callbackName;
+
+      script.onerror = function() {
+        document.getElementById("btnGuardar").disabled = false;
+        mostrarMensaje("Error de conexión con Apps Script.", "error");
+        limpiarScriptJSONP(callbackName);
+      };
+
+      document.body.appendChild(script);
+    }
+
+    function limpiarScriptJSONP(callbackName) {
+      const script = document.getElementById("jsonp_" + callbackName);
+
+      if (script) {
+        script.remove();
+      }
+
+      try {
+        delete window[callbackName];
+      } catch (e) {
+        window[callbackName] = undefined;
+      }
+    }
+
+    function limpiar() {
+      codigoActual = "";
+      document.getElementById("codigoLeido").textContent = "Sin escanear";
+      document.getElementById("cantidad").value = "";
+      document.getElementById("ultimo").style.display = "none";
+      mostrarMensaje("Captura limpia. Puedes escanear otro código.", "info");
+    }
+  </script>
+
+</body>
+</html>
