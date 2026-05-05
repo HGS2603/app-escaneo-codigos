@@ -320,25 +320,19 @@
       mensaje.className = "mensaje " + tipo;
     }
 
-async function iniciarScanner() {
+///////
+    function iniciarScanner() {
   if (scannerActivo) return;
 
   try {
     html5QrCode = new Html5Qrcode("reader");
 
     const cameraConfig = {
-      facingMode: { ideal: "environment" },
-      width: { ideal: 1920 },
-      height: { ideal: 1080 },
-      advanced: [
-        { focusMode: "continuous" },
-        { exposureMode: "continuous" }
-      ]
+      facingMode: "environment"
     };
 
     const config = {
       fps: 15,
-      aspectRatio: 1.7777778,
       disableFlip: true,
       qrbox: function(viewfinderWidth, viewfinderHeight) {
         const width = Math.floor(viewfinderWidth * 0.90);
@@ -376,7 +370,7 @@ async function iniciarScanner() {
 
       aplicarMejorasCamara();
 
-      mostrarMensaje("Cámara activa. Acerca el código a 15–25 cm con buena luz.", "info");
+      mostrarMensaje("Cámara activa. Apunta al código con buena luz, a 15–25 cm.", "info");
 
     }).catch(function(error) {
       scannerActivo = false;
@@ -406,10 +400,50 @@ async function iniciarScanner() {
 
     const track = tracks[0];
 
-    if (!track.getCapabilities) {
+    if (!track.getCapabilities || !track.applyConstraints) {
       return;
     }
 
+    const capabilities = track.getCapabilities();
+    const constraints = {
+      advanced: []
+    };
+
+    // Enfoque continuo si el celular lo soporta
+    if (capabilities.focusMode && capabilities.focusMode.includes("continuous")) {
+      constraints.advanced.push({
+        focusMode: "continuous"
+      });
+    }
+
+    // Zoom ligero para ayudar a leer códigos pequeños
+    if (capabilities.zoom) {
+      let zoomIdeal = 1.5;
+
+      if (zoomIdeal > capabilities.zoom.max) {
+        zoomIdeal = capabilities.zoom.max;
+      }
+
+      if (zoomIdeal < capabilities.zoom.min) {
+        zoomIdeal = capabilities.zoom.min;
+      }
+
+      constraints.advanced.push({
+        zoom: zoomIdeal
+      });
+    }
+
+    if (constraints.advanced.length > 0) {
+      track.applyConstraints(constraints).catch(function(error) {
+        console.log("No se pudieron aplicar mejoras de cámara:", error);
+      });
+    }
+  }, 1200);
+}
+
+
+    //////////
+    
     const capabilities = track.getCapabilities();
     const constraints = { advanced: [] };
 
