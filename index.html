@@ -321,15 +321,53 @@
     }
 
 ///////
-    function iniciarScanner() {
+async function iniciarScanner() {
   if (scannerActivo) return;
 
   try {
+    mostrarMensaje("Buscando cámaras disponibles...", "info");
+
+    document.getElementById("btnIniciar").disabled = true;
+
+    if (html5QrCode) {
+      try {
+        await html5QrCode.clear();
+      } catch (e) {
+        console.log("No se pudo limpiar scanner anterior:", e);
+      }
+    }
+
     html5QrCode = new Html5Qrcode("reader");
 
-    const cameraConfig = {
-      facingMode: "environment"
-    };
+    const cameras = await Html5Qrcode.getCameras();
+
+    if (!cameras || cameras.length === 0) {
+      throw new Error("No se encontraron cámaras disponibles.");
+    }
+
+    let camaraSeleccionada = cameras[0];
+
+    // Buscar cámara trasera por nombre
+    const camaraTrasera = cameras.find(function(camera) {
+      const label = String(camera.label || "").toLowerCase();
+
+      return (
+        label.includes("back") ||
+        label.includes("rear") ||
+        label.includes("environment") ||
+        label.includes("trasera") ||
+        label.includes("posterior")
+      );
+    });
+
+    if (camaraTrasera) {
+      camaraSeleccionada = camaraTrasera;
+    } else if (cameras.length > 1) {
+      // En muchos Android, la cámara trasera suele ser la última de la lista
+      camaraSeleccionada = cameras[cameras.length - 1];
+    }
+
+    mostrarMensaje("Iniciando cámara: " + (camaraSeleccionada.label || "cámara seleccionada"), "info");
 
     const config = {
       fps: 15,
@@ -345,8 +383,8 @@
       }
     };
 
-    html5QrCode.start(
-      cameraConfig,
+    await html5QrCode.start(
+      camaraSeleccionada.id,
       config,
       function(decodedText, decodedResult) {
         codigoActual = decodedText;
@@ -363,27 +401,30 @@
       function(errorMessage) {
         // No mostrar errores mientras busca código.
       }
-    ).then(function() {
-      scannerActivo = true;
-      document.getElementById("btnIniciar").disabled = true;
-      document.getElementById("btnDetener").disabled = false;
+    );
 
-      aplicarMejorasCamara();
+    scannerActivo = true;
 
-      mostrarMensaje("Cámara activa. Apunta al código con buena luz, a 15–25 cm.", "info");
+    document.getElementById("btnIniciar").disabled = true;
+    document.getElementById("btnDetener").disabled = false;
 
-    }).catch(function(error) {
-      scannerActivo = false;
-      mostrarMensaje("No se pudo abrir la cámara: " + error, "error");
-    });
+    aplicarMejorasCamara();
+
+    mostrarMensaje("Cámara activa. Apunta al código con buena luz, a 15–25 cm.", "info");
 
   } catch (error) {
     scannerActivo = false;
-    mostrarMensaje("Error al iniciar cámara: " + error.message, "error");
+
+    document.getElementById("btnIniciar").disabled = false;
+    document.getElementById("btnDetener").disabled = true;
+
+    mostrarMensaje("No se pudo iniciar la cámara: " + error.message, "error");
   }
 }
 
 
+    
+//////  
     function aplicarMejorasCamara() {
   setTimeout(function() {
     const video = document.querySelector("#reader video");
@@ -479,19 +520,34 @@
   }, 1000);
 }
     
-    function detenerScanner() {
-      if (!html5QrCode || !scannerActivo) return;
+  ///////
+async function detenerScanner() {
+  if (!html5QrCode || !scannerActivo) return;
 
-      html5QrCode.stop().then(function() {
-        scannerActivo = false;
-        document.getElementById("btnIniciar").disabled = false;
-        document.getElementById("btnDetener").disabled = true;
-        mostrarMensaje("Cámara detenida.", "info");
-      }).catch(function(error) {
-        mostrarMensaje("No se pudo detener la cámara: " + error, "error");
-      });
-    }
+  try {
+    await html5QrCode.stop();
+    await html5QrCode.clear();
 
+    scannerActivo = false;
+
+    document.getElementById("btnIniciar").disabled = false;
+    document.getElementById("btnDetener").disabled = true;
+
+    mostrarMensaje("Cámara detenida.", "info");
+
+  } catch (error) {
+    scannerActivo = false;
+
+    document.getElementById("btnIniciar").disabled = false;
+    document.getElementById("btnDetener").disabled = true;
+
+    mostrarMensaje("No se pudo detener la cámara: " + error.message, "error");
+  }
+}
+
+    
+    /////
+    
     function usarCodigoManual() {
       const codigoManual = document.getElementById("codigoManual").value.trim();
 
