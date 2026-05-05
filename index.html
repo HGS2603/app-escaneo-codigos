@@ -320,18 +320,29 @@
       mensaje.className = "mensaje " + tipo;
     }
 
-function iniciarScanner() {
+async function iniciarScanner() {
   if (scannerActivo) return;
 
   try {
     html5QrCode = new Html5Qrcode("reader");
 
+    const cameraConfig = {
+      facingMode: { ideal: "environment" },
+      width: { ideal: 1920 },
+      height: { ideal: 1080 },
+      advanced: [
+        { focusMode: "continuous" },
+        { exposureMode: "continuous" }
+      ]
+    };
+
     const config = {
-      fps: 10,
+      fps: 15,
+      aspectRatio: 1.7777778,
+      disableFlip: true,
       qrbox: function(viewfinderWidth, viewfinderHeight) {
-        const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
-        const width = Math.floor(minEdge * 0.90);
-        const height = Math.floor(width * 0.45);
+        const width = Math.floor(viewfinderWidth * 0.90);
+        const height = Math.floor(width * 0.35);
 
         return {
           width: width,
@@ -341,7 +352,7 @@ function iniciarScanner() {
     };
 
     html5QrCode.start(
-      { facingMode: "environment" },
+      cameraConfig,
       config,
       function(decodedText, decodedResult) {
         codigoActual = decodedText;
@@ -356,13 +367,17 @@ function iniciarScanner() {
         }
       },
       function(errorMessage) {
-        // No mostrar errores mientras la cámara busca el código.
+        // No mostrar errores mientras busca código.
       }
     ).then(function() {
       scannerActivo = true;
       document.getElementById("btnIniciar").disabled = true;
       document.getElementById("btnDetener").disabled = false;
-      mostrarMensaje("Cámara activa. Apunta al código de barras.", "info");
+
+      aplicarMejorasCamara();
+
+      mostrarMensaje("Cámara activa. Acerca el código a 15–25 cm con buena luz.", "info");
+
     }).catch(function(error) {
       scannerActivo = false;
       mostrarMensaje("No se pudo abrir la cámara: " + error, "error");
@@ -374,6 +389,61 @@ function iniciarScanner() {
   }
 }
 
+
+    function aplicarMejorasCamara() {
+  setTimeout(function() {
+    const video = document.querySelector("#reader video");
+
+    if (!video || !video.srcObject) {
+      return;
+    }
+
+    const tracks = video.srcObject.getVideoTracks();
+
+    if (!tracks || tracks.length === 0) {
+      return;
+    }
+
+    const track = tracks[0];
+
+    if (!track.getCapabilities) {
+      return;
+    }
+
+    const capabilities = track.getCapabilities();
+    const constraints = { advanced: [] };
+
+    // Enfoque continuo, si el celular lo soporta
+    if (capabilities.focusMode && capabilities.focusMode.includes("continuous")) {
+      constraints.advanced.push({
+        focusMode: "continuous"
+      });
+    }
+
+    // Zoom ligero para códigos pequeños o cuando la cámara enfoca lejos
+    if (capabilities.zoom) {
+      let zoomIdeal = 1.5;
+
+      if (capabilities.zoom.max < zoomIdeal) {
+        zoomIdeal = capabilities.zoom.max;
+      }
+
+      if (capabilities.zoom.min > zoomIdeal) {
+        zoomIdeal = capabilities.zoom.min;
+      }
+
+      constraints.advanced.push({
+        zoom: zoomIdeal
+      });
+    }
+
+    if (constraints.advanced.length > 0) {
+      track.applyConstraints(constraints).catch(function(error) {
+        console.log("No se pudieron aplicar mejoras de cámara:", error);
+      });
+    }
+  }, 1000);
+}
     
     function detenerScanner() {
       if (!html5QrCode || !scannerActivo) return;
