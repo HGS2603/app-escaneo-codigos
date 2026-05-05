@@ -320,68 +320,61 @@
       mensaje.className = "mensaje " + tipo;
     }
 
-    function iniciarScanner() {
-      if (scannerActivo) return;
+function iniciarScanner() {
+  if (scannerActivo) return;
 
-      if (API_URL === "https://script.google.com/macros/s/AKfycbymuvjSW0X70bvMTYXPrVtwZ_zUppcD493UUawLc5Rkx1N5Wb_TLKF4JehyJrV0PUXXZg/exec") {
-        mostrarMensaje("Falta pegar la URL de Apps Script en API_URL.", "error");
-        return;
+  try {
+    html5QrCode = new Html5Qrcode("reader");
+
+    const config = {
+      fps: 10,
+      qrbox: function(viewfinderWidth, viewfinderHeight) {
+        const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
+        const width = Math.floor(minEdge * 0.90);
+        const height = Math.floor(width * 0.45);
+
+        return {
+          width: width,
+          height: height
+        };
       }
+    };
 
-      html5QrCode = new Html5Qrcode("reader");
+    html5QrCode.start(
+      { facingMode: "environment" },
+      config,
+      function(decodedText, decodedResult) {
+        codigoActual = decodedText;
 
-      const config = {
-        fps: 10,
-        qrbox: function(viewfinderWidth, viewfinderHeight) {
-          const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
-          const width = Math.floor(minEdge * 0.90);
-          const height = Math.floor(width * 0.45);
+        document.getElementById("codigoLeido").textContent = decodedText;
+        document.getElementById("codigoManual").value = "";
 
-          return {
-            width: width,
-            height: height
-          };
-        },
-        formatsToSupport: [
-          Html5QrcodeSupportedFormats.QR_CODE,
-          Html5QrcodeSupportedFormats.CODE_128,
-          Html5QrcodeSupportedFormats.CODE_39,
-          Html5QrcodeSupportedFormats.CODE_93,
-          Html5QrcodeSupportedFormats.EAN_13,
-          Html5QrcodeSupportedFormats.EAN_8,
-          Html5QrcodeSupportedFormats.UPC_A,
-          Html5QrcodeSupportedFormats.UPC_E,
-          Html5QrcodeSupportedFormats.ITF
-        ]
-      };
+        mostrarMensaje("Código escaneado correctamente.", "ok");
 
-      html5QrCode.start(
-        { facingMode: "environment" },
-        config,
-        function(decodedText, decodedResult) {
-          codigoActual = decodedText;
-          document.getElementById("codigoLeido").textContent = decodedText;
-          document.getElementById("codigoManual").value = "";
-          mostrarMensaje("Código escaneado correctamente.", "ok");
-
-          if (navigator.vibrate) {
-            navigator.vibrate(120);
-          }
-        },
-        function(errorMessage) {
-          // No mostrar errores mientras la cámara busca el código.
+        if (navigator.vibrate) {
+          navigator.vibrate(120);
         }
-      ).then(function() {
-        scannerActivo = true;
-        document.getElementById("btnIniciar").disabled = true;
-        document.getElementById("btnDetener").disabled = false;
-        mostrarMensaje("Cámara activa. Apunta al código de barras.", "info");
-      }).catch(function(error) {
-        scannerActivo = false;
-        mostrarMensaje("No se pudo abrir la cámara: " + error, "error");
-      });
-    }
+      },
+      function(errorMessage) {
+        // No mostrar errores mientras la cámara busca el código.
+      }
+    ).then(function() {
+      scannerActivo = true;
+      document.getElementById("btnIniciar").disabled = true;
+      document.getElementById("btnDetener").disabled = false;
+      mostrarMensaje("Cámara activa. Apunta al código de barras.", "info");
+    }).catch(function(error) {
+      scannerActivo = false;
+      mostrarMensaje("No se pudo abrir la cámara: " + error, "error");
+    });
 
+  } catch (error) {
+    scannerActivo = false;
+    mostrarMensaje("Error al iniciar cámara: " + error.message, "error");
+  }
+}
+
+    
     function detenerScanner() {
       if (!html5QrCode || !scannerActivo) return;
 
