@@ -4,9 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 
-  <title>App Escaneo de Códigos</title>
+  <title>APP Inventario QR</title>
 
-  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js" type="text/javascript"></script>
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 
   <style>
     * {
@@ -24,34 +24,218 @@
     }
 
     body {
-      padding: 12px;
+      padding: 10px;
     }
 
     .app {
       width: 100%;
-      max-width: 480px;
+      max-width: 520px;
       margin: 0 auto;
+    }
+
+    .card {
       background: #ffffff;
       border-radius: 18px;
       padding: 16px;
       box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+      margin-bottom: 12px;
     }
 
-    .titulo {
-      text-align: center;
-      margin-bottom: 14px;
+    .header {
+      background: linear-gradient(135deg, #0f172a, #1d4ed8);
+      color: white;
+      border-radius: 18px;
+      padding: 16px;
+      margin-bottom: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.28);
     }
 
-    .titulo h1 {
+    .header h1 {
       margin: 0;
+      font-size: 23px;
+      letter-spacing: 0.4px;
+    }
+
+    .header p {
+      margin: 6px 0 0;
+      font-size: 14px;
+      color: #dbeafe;
+    }
+
+    .pantalla {
+      display: none;
+    }
+
+    .pantalla.activa {
+      display: block;
+    }
+
+    h2 {
+      margin: 0 0 12px;
       font-size: 22px;
       color: #111827;
     }
 
-    .titulo p {
-      margin: 5px 0 0;
-      font-size: 14px;
+    h3 {
+      margin: 14px 0 8px;
+      font-size: 18px;
+      color: #111827;
+    }
+
+    label {
+      display: block;
+      margin-top: 12px;
+      margin-bottom: 6px;
+      font-size: 15px;
+      font-weight: bold;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      border: 1px solid #d1d5db;
+      border-radius: 12px;
+      padding: 14px;
+      font-size: 18px;
+      outline: none;
+      background: white;
+    }
+
+    textarea {
+      min-height: 70px;
+      resize: vertical;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37,99,235,0.18);
+    }
+
+    .btn {
+      width: 100%;
+      border: none;
+      border-radius: 14px;
+      padding: 15px;
+      font-size: 17px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    .btn-primary {
+      background: #2563eb;
+      color: white;
+    }
+
+    .btn-success {
+      background: #16a34a;
+      color: white;
+    }
+
+    .btn-danger {
+      background: #dc2626;
+      color: white;
+    }
+
+    .btn-secondary {
+      background: #374151;
+      color: white;
+    }
+
+    .btn-warning {
+      background: #f59e0b;
+      color: #111827;
+    }
+
+    .btn-light {
+      background: #e5e7eb;
+      color: #111827;
+    }
+
+    .btn:disabled {
+      background: #9ca3af;
+      color: #f3f4f6;
+      cursor: not-allowed;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .menu-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+
+    .menu-card {
+      border: 1px solid #e5e7eb;
+      border-radius: 16px;
+      padding: 14px;
+      background: #f9fafb;
+      cursor: pointer;
+    }
+
+    .menu-card strong {
+      display: block;
+      font-size: 17px;
+      margin-bottom: 4px;
+    }
+
+    .menu-card span {
+      font-size: 13px;
       color: #6b7280;
+    }
+
+    .menu-card.disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .status-box {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      color: #1e3a8a;
+      border-radius: 14px;
+      padding: 12px;
+      font-size: 14px;
+      margin-top: 10px;
+    }
+
+    .status-box strong {
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .mensaje {
+      display: none;
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: 12px;
+      font-weight: bold;
+      font-size: 15px;
+    }
+
+    .mensaje.ok {
+      display: block;
+      background: #dcfce7;
+      color: #166534;
+      border: 1px solid #86efac;
+    }
+
+    .mensaje.error {
+      display: block;
+      background: #fee2e2;
+      color: #991b1b;
+      border: 1px solid #fecaca;
+    }
+
+    .mensaje.info {
+      display: block;
+      background: #e0f2fe;
+      color: #075985;
+      border: 1px solid #7dd3fc;
     }
 
     .scanner-box {
@@ -60,7 +244,7 @@
       border-radius: 16px;
       overflow: hidden;
       padding: 8px;
-      margin-bottom: 14px;
+      margin-bottom: 12px;
     }
 
     #reader {
@@ -73,135 +257,104 @@
 
     #reader video {
       width: 100% !important;
-      max-height: 320px !important;
+      max-height: 330px !important;
       object-fit: cover !important;
       border-radius: 12px;
     }
 
-    .btn {
-      width: 100%;
-      border: none;
-      border-radius: 14px;
-      padding: 15px;
-      font-size: 18px;
-      font-weight: bold;
-      cursor: pointer;
-      margin-top: 10px;
-    }
-
-    .btn-primary {
-      background: #2563eb;
-      color: white;
-    }
-
-    .btn-secondary {
-      background: #374151;
-      color: white;
-    }
-
-    .btn-danger {
-      background: #dc2626;
-      color: white;
-    }
-
-    .btn-success {
-      background: #16a34a;
-      color: white;
-    }
-
-    .btn:disabled {
-      background: #9ca3af;
-      cursor: not-allowed;
-    }
-
-    .campo {
-      margin-top: 12px;
-    }
-
-    label {
-      display: block;
-      font-size: 15px;
-      font-weight: bold;
-      margin-bottom: 6px;
-      color: #111827;
-    }
-
-    input {
-      width: 100%;
-      border: 1px solid #d1d5db;
-      border-radius: 12px;
-      padding: 14px;
-      font-size: 20px;
-      outline: none;
-    }
-
-    input:focus {
-      border-color: #2563eb;
-      box-shadow: 0 0 0 3px rgba(37,99,235,0.18);
-    }
-
-    .codigo-leido {
-      margin-top: 12px;
-      background: #eef2ff;
-      border: 1px solid #c7d2fe;
-      color: #1e3a8a;
-      padding: 12px;
-      border-radius: 12px;
-      font-size: 16px;
-      word-break: break-all;
-    }
-
-    .codigo-leido strong {
-      display: block;
-      margin-bottom: 5px;
-      color: #111827;
-    }
-
-    .mensaje {
-      display: none;
-      margin-top: 12px;
-      padding: 12px;
-      border-radius: 12px;
-      font-weight: bold;
-      font-size: 15px;
-    }
-
-    .ok {
-      display: block;
-      background: #dcfce7;
-      color: #166534;
-      border: 1px solid #86efac;
-    }
-
-    .error {
-      display: block;
-      background: #fee2e2;
-      color: #991b1b;
-      border: 1px solid #fecaca;
-    }
-
-    .info {
-      display: block;
-      background: #e0f2fe;
-      color: #075985;
-      border: 1px solid #7dd3fc;
-    }
-
-    .ultimo {
-      display: none;
-      margin-top: 12px;
+    .preview {
       background: #f9fafb;
       border: 1px solid #e5e7eb;
+      border-radius: 14px;
       padding: 12px;
-      border-radius: 12px;
+      margin-top: 12px;
       font-size: 14px;
+    }
+
+    .preview-row {
+      display: grid;
+      grid-template-columns: 110px 1fr;
+      gap: 8px;
+      padding: 5px 0;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    .preview-row:last-child {
+      border-bottom: none;
+    }
+
+    .preview-label {
+      font-weight: bold;
       color: #374151;
     }
 
-    .fila-botones {
+    .preview-value {
+      color: #111827;
+      word-break: break-word;
+    }
+
+    .kpi-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 10px;
+      margin-top: 10px;
+    }
+
+    .kpi {
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 14px;
+      padding: 12px;
+    }
+
+    .kpi span {
+      display: block;
+      color: #6b7280;
+      font-size: 13px;
+    }
+
+    .kpi strong {
+      display: block;
+      font-size: 22px;
+      margin-top: 4px;
+      color: #111827;
+    }
+
+    .tabla-wrap {
+      width: 100%;
+      overflow-x: auto;
+      margin-top: 12px;
+      border: 1px solid #e5e7eb;
+      border-radius: 14px;
+    }
+
+    table {
+      width: 100%;
+      min-width: 950px;
+      border-collapse: collapse;
+      font-size: 13px;
+      background: white;
+    }
+
+    th {
+      background: #111827;
+      color: white;
+      text-align: left;
+      padding: 9px;
+      white-space: nowrap;
+    }
+
+    td {
+      border-bottom: 1px solid #e5e7eb;
+      padding: 8px;
+      vertical-align: top;
+      white-space: nowrap;
+    }
+
+    .separador {
+      height: 1px;
+      background: #e5e7eb;
+      margin: 14px 0;
     }
 
     @media (max-width: 420px) {
@@ -209,146 +362,649 @@
         padding: 8px;
       }
 
-      .app {
+      .card, .header {
+        border-radius: 15px;
         padding: 14px;
-        border-radius: 14px;
       }
 
-      .titulo h1 {
+      .header h1 {
+        font-size: 21px;
+      }
+
+      h2 {
         font-size: 20px;
       }
 
-      #reader {
-        min-height: 230px;
-      }
-
-      input {
-        font-size: 18px;
+      input, select, textarea {
+        font-size: 17px;
+        padding: 13px;
       }
 
       .btn {
         font-size: 16px;
         padding: 14px;
       }
+
+      .preview-row {
+        grid-template-columns: 95px 1fr;
+      }
+
+      #reader {
+        min-height: 230px;
+      }
     }
   </style>
 </head>
 
 <body>
-
   <div class="app">
-    <div class="titulo">
-      <h1>Escaneo de Código</h1>
-      <p>HGS (Data Solutions) Inv WIP V-1.03</p>
+
+    <div class="header">
+      <h1>APP Inventario QR</h1>
+      <p id="headerInfo">Sistema de inventario cíclico</p>
     </div>
 
-    <div class="scanner-box">
-      <div id="reader"></div>
-    </div>
+    <!-- LOGIN -->
+    <section id="pantallaLogin" class="pantalla activa">
+      <div class="card">
+        <h2>Login</h2>
 
-    <div class="fila-botones">
-      <button class="btn btn-primary" id="btnIniciar" onclick="iniciarScanner()">
-        Iniciar cámara
-      </button>
+        <label for="loginUsuario">Usuario</label>
+        <input id="loginUsuario" type="text" value="HGS" autocomplete="username" />
 
-      <button class="btn btn-danger" id="btnDetener" onclick="detenerScanner()" disabled>
-        Detener
-      </button>
-    </div>
+        <label for="loginPassword">Password</label>
+        <input id="loginPassword" type="password" value="2603" autocomplete="current-password" />
 
-    <div class="codigo-leido">
-      <strong>Código leído:</strong>
-      <span id="codigoLeido">Sin escanear</span>
-    </div>
+        <button class="btn btn-primary" onclick="login()">Entrar</button>
 
-    <div class="campo">
-      <label for="codigoManual">Captura manual de código</label>
-      <input
-        id="codigoManual"
-        type="text"
-        placeholder="Escribe el código si no se puede escanear"
-      />
-    </div>
+        <div id="msgLogin" class="mensaje"></div>
+      </div>
+    </section>
 
-    <button class="btn btn-secondary" onclick="usarCodigoManual()">
-      Usar código manual
-    </button>
+    <!-- MENU -->
+    <section id="pantallaMenu" class="pantalla">
+      <div class="card">
+        <h2>Menú principal</h2>
 
-    <div class="campo">
-      <label for="cantidad">Cantidad</label>
-      <input
-        id="cantidad"
-        type="number"
-        inputmode="decimal"
-        min="0"
-        step="any"
-        placeholder="Introduce cantidad"
-      />
-    </div>
+        <div class="status-box">
+          <strong id="menuUsuario">Usuario: -</strong>
+          <div id="menuRol">Rol: -</div>
+          <div id="menuInventario">Inventario: -</div>
+          <div id="menuEstado">Estado: -</div>
+        </div>
 
-    <div class="campo">
-      <label for="usuario">Usuario</label>
-      <input
-        id="usuario"
-        type="text"
-        value="Usuario"
-      />
-    </div>
+        <div id="msgMenu" class="mensaje"></div>
 
-    <button class="btn btn-success" id="btnGuardar" onclick="guardarRegistro()">
-      Guardar registro
-    </button>
+        <div class="separador"></div>
 
-    <button class="btn btn-secondary" onclick="limpiar()">
-      Limpiar captura
-    </button>
+        <div class="menu-grid">
+          <div class="menu-card" onclick="abrirInventarioActivo()">
+            <strong>Inventario activo</strong>
+            <span>Ver estado rápido del inventario actual.</span>
+          </div>
 
-    <div id="mensaje" class="mensaje"></div>
+          <div id="cardEscanearQR" class="menu-card" onclick="abrirEscaneoQR()">
+            <strong>Escanear QR</strong>
+            <span>Leer etiqueta QR y registrar contra inventario activo.</span>
+          </div>
 
-    <div id="ultimo" class="ultimo"></div>
+          <div id="cardCapturaManual" class="menu-card" onclick="abrirCapturaManual()">
+            <strong>Captura manual</strong>
+            <span>Capturar OT, rollo, kilos y proceso manualmente.</span>
+          </div>
+
+          <div class="menu-card" onclick="abrirConsulta()">
+            <strong>Consulta de inventario</strong>
+            <span>Filtrar registros por activo, estatus y proceso.</span>
+          </div>
+
+          <div class="menu-card" onclick="abrirResumen()">
+            <strong>Resumen inventario</strong>
+            <span>Ver KPIs y avance del inventario.</span>
+          </div>
+
+          <div id="cardPanelAdmin" class="menu-card" onclick="abrirPanelAdmin()">
+            <strong>Panel Admin</strong>
+            <span>Iniciar o cerrar inventario.</span>
+          </div>
+        </div>
+
+        <button class="btn btn-secondary" onclick="cerrarSesion()">Cerrar sesión</button>
+      </div>
+    </section>
+
+    <!-- INVENTARIO ACTIVO -->
+    <section id="pantallaInventario" class="pantalla">
+      <div class="card">
+        <h2>Inventario activo</h2>
+
+        <div id="estadoInventarioBox" class="status-box"></div>
+        <div id="kpisInventario" class="kpi-grid"></div>
+
+        <button class="btn btn-primary" onclick="renderInventarioActivo()">Actualizar</button>
+        <button class="btn btn-secondary" onclick="mostrarPantalla('pantallaMenu')">Volver al menú</button>
+
+        <div id="msgInventario" class="mensaje"></div>
+      </div>
+    </section>
+
+    <!-- ESCANEO QR -->
+    <section id="pantallaQR" class="pantalla">
+      <div class="card">
+        <h2>Escaneo QR</h2>
+
+        <div class="status-box">
+          <strong id="qrInventarioLabel">Inventario: -</strong>
+          <div id="qrUsuarioLabel">Usuario: -</div>
+        </div>
+
+        <div class="scanner-box">
+          <div id="reader"></div>
+        </div>
+
+        <div class="grid-2">
+          <button class="btn btn-primary" id="btnIniciarCamara" onclick="iniciarScanner()">Iniciar cámara</button>
+          <button class="btn btn-danger" id="btnDetenerCamara" onclick="detenerScanner(false)" disabled>Detener</button>
+        </div>
+
+        <div class="preview">
+          <h3>Datos detectados</h3>
+          <div id="previewQR"></div>
+        </div>
+
+        <button class="btn btn-success" onclick="guardarQR()">Guardar escaneo</button>
+        <button class="btn btn-light" onclick="limpiarQR()">Limpiar</button>
+        <button class="btn btn-secondary" onclick="volverMenuDesdeQR()">Volver al menú</button>
+
+        <div id="msgQR" class="mensaje"></div>
+      </div>
+    </section>
+
+    <!-- CAPTURA MANUAL -->
+    <section id="pantallaManual" class="pantalla">
+      <div class="card">
+        <h2>Captura manual</h2>
+
+        <div class="status-box">
+          <strong id="manualInventarioLabel">Inventario: -</strong>
+          <div id="manualUsuarioLabel">Usuario: -</div>
+        </div>
+
+        <label for="manualOT">OT</label>
+        <input id="manualOT" type="text" inputmode="numeric" placeholder="Ej. 205602" />
+
+        <label for="manualRollo">No. Rollo</label>
+        <input id="manualRollo" type="text" placeholder="Ej. 30D" />
+
+        <label for="manualKilos">Kilos</label>
+        <input id="manualKilos" type="number" inputmode="decimal" step="any" placeholder="Ej. 72" />
+
+        <label for="manualProceso">Proceso</label>
+        <select id="manualProceso">
+          <option value="">Selecciona proceso</option>
+          <option value="Impresion">Impresion</option>
+          <option value="Laminado">Laminado</option>
+          <option value="Corte">Corte</option>
+          <option value="Empaque">Empaque</option>
+          <option value="Bolseo">Bolseo</option>
+        </select>
+
+        <button class="btn btn-success" onclick="guardarManual()">Guardar manual</button>
+        <button class="btn btn-light" onclick="limpiarManual(false)">Limpiar</button>
+        <button class="btn btn-secondary" onclick="mostrarPantalla('pantallaMenu')">Volver al menú</button>
+
+        <div id="msgManual" class="mensaje"></div>
+      </div>
+    </section>
+
+    <!-- PANEL ADMIN -->
+    <section id="pantallaAdmin" class="pantalla">
+      <div class="card">
+        <h2>Panel Admin</h2>
+
+        <div class="status-box">
+          <strong id="adminInventarioLabel">Inventario: -</strong>
+          <div id="adminEstadoLabel">Estado: -</div>
+        </div>
+
+        <label for="comentarioInventario">Comentarios de inventario</label>
+        <textarea id="comentarioInventario" placeholder="Opcional"></textarea>
+
+        <button class="btn btn-warning" onclick="iniciarInventario()">Iniciar nuevo inventario</button>
+        <button class="btn btn-danger" onclick="cerrarInventario()">Cerrar inventario activo</button>
+        <button class="btn btn-primary" onclick="abrirResumen()">Ver resumen</button>
+        <button class="btn btn-secondary" onclick="mostrarPantalla('pantallaMenu')">Volver al menú</button>
+
+        <div id="msgAdmin" class="mensaje"></div>
+      </div>
+    </section>
+
+    <!-- RESUMEN -->
+    <section id="pantallaResumen" class="pantalla">
+      <div class="card">
+        <h2>Resumen de inventario</h2>
+
+        <div id="resumenInfo" class="status-box"></div>
+        <div id="resumenKpis" class="kpi-grid"></div>
+
+        <button class="btn btn-primary" onclick="abrirResumen()">Actualizar</button>
+        <button class="btn btn-light" onclick="abrirConsulta()">Ir a consulta de inventario</button>
+        <button class="btn btn-secondary" onclick="mostrarPantalla('pantallaMenu')">Volver al menú</button>
+
+        <div id="msgResumen" class="mensaje"></div>
+      </div>
+    </section>
+
+    <!-- CONSULTA -->
+    <section id="pantallaConsulta" class="pantalla">
+      <div class="card">
+        <h2>Consulta de inventario</h2>
+
+        <div class="status-box">
+          <strong id="consultaInventarioLabel">Inventario: -</strong>
+          <div id="consultaRolLabel">Rol: -</div>
+        </div>
+
+        <label for="filtroActivo">Activo</label>
+        <select id="filtroActivo">
+          <option value="Todos">Todos</option>
+          <option value="1">1 - Encontrados / Nuevos</option>
+          <option value="0">0 - No encontrados</option>
+        </select>
+
+        <label for="filtroEstatus">Estatus</label>
+        <select id="filtroEstatus">
+          <option value="Todos">Todos</option>
+          <option value="Encontrado">Encontrado</option>
+          <option value="Nuevo">Nuevo</option>
+          <option value="No encontrado">No encontrado</option>
+        </select>
+
+        <label for="filtroProceso">Proceso</label>
+        <select id="filtroProceso">
+          <option value="Todos">Todos</option>
+          <option value="Impresion">Impresion</option>
+          <option value="Laminado">Laminado</option>
+          <option value="Corte">Corte</option>
+          <option value="Empaque">Empaque</option>
+          <option value="Bolseo">Bolseo</option>
+        </select>
+
+        <button class="btn btn-primary" onclick="consultarRegistros()">Buscar</button>
+        <button id="btnExportarCSV" class="btn btn-success" onclick="exportarCSV()">Exportar CSV</button>
+        <button class="btn btn-secondary" onclick="mostrarPantalla('pantallaMenu')">Volver al menú</button>
+
+        <div id="msgConsulta" class="mensaje"></div>
+
+        <div class="tabla-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>OT</th>
+                <th>No. Rollo</th>
+                <th>Proceso</th>
+                <th>Kilos</th>
+                <th>SKU</th>
+                <th>Descripción</th>
+                <th>Activo</th>
+                <th>Estatus</th>
+                <th>Fecha último</th>
+                <th>Hora último</th>
+                <th>Usuario último</th>
+              </tr>
+            </thead>
+            <tbody id="tablaConsulta">
+              <tr>
+                <td colspan="11">Sin datos consultados.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
   </div>
 
   <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbymuvjSW0X70bvMTYXPrVtwZ_zUppcD493UUawLc5Rkx1N5Wb_TLKF4JehyJrV0PUXXZg/exec";
+    /****************************************************
+     * CONFIGURACIÓN
+     ****************************************************/
+
+    const API_URL = https://script.google.com/macros/s/AKfycbymuvjSW0X70bvMTYXPrVtwZ_zUppcD493UUawLc5Rkx1N5Wb_TLKF4JehyJrV0PUXXZg/exec;
+
+    let usuarioActual = null;
+    let inventarioActivo = null;
 
     let html5QrCode = null;
     let scannerActivo = false;
-    let codigoActual = "";
 
-    function mostrarMensaje(texto, tipo) {
-      const mensaje = document.getElementById("mensaje");
-      mensaje.textContent = texto;
-      mensaje.className = "mensaje " + tipo;
+    let qrTextoActual = "";
+    let qrDatosActuales = null;
+    let bloqueoLecturaQR = false;
+
+    let registrosConsulta = [];
+
+
+    /****************************************************
+     * API JSONP
+     ****************************************************/
+
+    function apiCall(action, params = {}) {
+      return new Promise((resolve, reject) => {
+        if (!API_URL || API_URL.includes("PEGA_AQUI")) {
+          reject(new Error("Falta pegar la URL de Apps Script en API_URL."));
+          return;
+        }
+
+        const callbackName = "cb_" + Date.now() + "_" + Math.random().toString(36).slice(2);
+
+        const query = new URLSearchParams();
+        query.append("action", action);
+        query.append("callback", callbackName);
+
+        Object.keys(params).forEach(key => {
+          const value = params[key];
+
+          if (value !== undefined && value !== null) {
+            query.append(key, value);
+          }
+        });
+
+        const script = document.createElement("script");
+        script.id = "jsonp_" + callbackName;
+        script.src = API_URL + (API_URL.includes("?") ? "&" : "?") + query.toString();
+
+        const timeout = setTimeout(() => {
+          limpiarJSONP(callbackName);
+          reject(new Error("Tiempo de espera agotado contra Apps Script."));
+        }, 30000);
+
+        window[callbackName] = function(respuesta) {
+          clearTimeout(timeout);
+          limpiarJSONP(callbackName);
+          resolve(respuesta);
+        };
+
+        script.onerror = function() {
+          clearTimeout(timeout);
+          limpiarJSONP(callbackName);
+          reject(new Error("Error de conexión con Apps Script."));
+        };
+
+        document.body.appendChild(script);
+      });
     }
 
-    function onScanSuccess(decodedText, decodedResult) {
-      codigoActual = decodedText;
+    function limpiarJSONP(callbackName) {
+      const script = document.getElementById("jsonp_" + callbackName);
 
-      document.getElementById("codigoLeido").textContent = decodedText;
-      document.getElementById("codigoManual").value = "";
+      if (script) {
+        script.remove();
+      }
 
-      mostrarMensaje("Código escaneado correctamente.", "ok");
-
-      if (navigator.vibrate) {
-        navigator.vibrate(120);
+      try {
+        delete window[callbackName];
+      } catch (e) {
+        window[callbackName] = undefined;
       }
     }
 
-    function onScanFailure(errorMessage) {
-      // No mostrar errores mientras busca código.
+
+    /****************************************************
+     * UI GENERAL
+     ****************************************************/
+
+    function mostrarPantalla(id) {
+      document.querySelectorAll(".pantalla").forEach(pantalla => {
+        pantalla.classList.remove("activa");
+      });
+
+      document.getElementById(id).classList.add("activa");
+      window.scrollTo(0, 0);
+    }
+
+    function mostrarMensaje(id, texto, tipo) {
+      const el = document.getElementById(id);
+      el.textContent = texto;
+      el.className = "mensaje " + tipo;
+    }
+
+    function limpiarMensaje(id) {
+      const el = document.getElementById(id);
+      el.textContent = "";
+      el.className = "mensaje";
+    }
+
+    function esAdmin() {
+      return usuarioActual && usuarioActual.rol === "Admin";
+    }
+
+    function hayInventarioAbierto() {
+      return inventarioActivo && inventarioActivo.estado === "ABIERTO";
+    }
+
+    function textoInventario() {
+      if (!inventarioActivo) {
+        return "Sin inventario activo";
+      }
+
+      return inventarioActivo.inventario_id || "Sin inventario activo";
+    }
+
+
+    /****************************************************
+     * LOGIN
+     ****************************************************/
+
+    async function login() {
+      limpiarMensaje("msgLogin");
+
+      const usuario = document.getElementById("loginUsuario").value.trim();
+      const password = document.getElementById("loginPassword").value.trim();
+
+      if (!usuario || !password) {
+        mostrarMensaje("msgLogin", "Captura usuario y password.", "error");
+        return;
+      }
+
+      try {
+        mostrarMensaje("msgLogin", "Validando acceso...", "info");
+
+        const res = await apiCall("login", {
+          usuario: usuario,
+          password: password
+        });
+
+        if (!res.ok) {
+          mostrarMensaje("msgLogin", res.mensaje || "No se pudo iniciar sesión.", "error");
+          return;
+        }
+
+        usuarioActual = res.usuario;
+        inventarioActivo = res.inventario || null;
+
+        await cargarEstadoInventario(false);
+        renderMenu();
+
+        mostrarPantalla("pantallaMenu");
+
+      } catch (error) {
+        mostrarMensaje("msgLogin", error.message, "error");
+      }
+    }
+
+    function cerrarSesion() {
+      usuarioActual = null;
+      inventarioActivo = null;
+
+      detenerScanner(true);
+
+      document.getElementById("headerInfo").textContent = "Sistema de inventario cíclico";
+      mostrarPantalla("pantallaLogin");
+    }
+
+
+    /****************************************************
+     * ESTADO DE INVENTARIO Y MENÚ
+     ****************************************************/
+
+    async function cargarEstadoInventario(mostrarMsg) {
+      try {
+        const res = await apiCall("estadoInventario", {
+          usuario: usuarioActual ? usuarioActual.usuario : ""
+        });
+
+        if (res.ok && res.hay_inventario_activo) {
+          inventarioActivo = res.inventario;
+        } else {
+          inventarioActivo = null;
+        }
+
+        actualizarEtiquetasGlobales();
+
+        if (mostrarMsg) {
+          mostrarMensaje("msgInventario", "Estado actualizado.", "ok");
+        }
+
+        return res;
+
+      } catch (error) {
+        if (mostrarMsg) {
+          mostrarMensaje("msgInventario", error.message, "error");
+        }
+
+        throw error;
+      }
+    }
+
+    function actualizarEtiquetasGlobales() {
+      if (!usuarioActual) return;
+
+      document.getElementById("headerInfo").textContent =
+        "Usuario: " + usuarioActual.nombre +
+        " | Rol: " + usuarioActual.rol +
+        " | Inventario: " + textoInventario();
+
+      document.getElementById("menuUsuario").textContent = "Usuario: " + usuarioActual.nombre;
+      document.getElementById("menuRol").textContent = "Rol: " + usuarioActual.rol;
+      document.getElementById("menuInventario").textContent = "Inventario: " + textoInventario();
+      document.getElementById("menuEstado").textContent = "Estado: " + (inventarioActivo ? inventarioActivo.estado : "-");
+
+      document.getElementById("qrInventarioLabel").textContent = "Inventario: " + textoInventario();
+      document.getElementById("qrUsuarioLabel").textContent = "Usuario: " + usuarioActual.nombre;
+
+      document.getElementById("manualInventarioLabel").textContent = "Inventario: " + textoInventario();
+      document.getElementById("manualUsuarioLabel").textContent = "Usuario: " + usuarioActual.nombre;
+
+      document.getElementById("adminInventarioLabel").textContent = "Inventario: " + textoInventario();
+      document.getElementById("adminEstadoLabel").textContent = "Estado: " + (inventarioActivo ? inventarioActivo.estado : "-");
+
+      document.getElementById("consultaInventarioLabel").textContent = "Inventario: " + textoInventario();
+      document.getElementById("consultaRolLabel").textContent = "Rol: " + usuarioActual.rol;
+    }
+
+    function renderMenu() {
+      actualizarEtiquetasGlobales();
+
+      const capturaBloqueada = !hayInventarioAbierto();
+
+      setMenuCardDisabled("cardEscanearQR", capturaBloqueada);
+      setMenuCardDisabled("cardCapturaManual", capturaBloqueada);
+
+      const cardAdmin = document.getElementById("cardPanelAdmin");
+
+      if (esAdmin()) {
+        cardAdmin.style.display = "block";
+        cardAdmin.classList.remove("disabled");
+      } else {
+        cardAdmin.style.display = "none";
+      }
+
+      if (capturaBloqueada) {
+        mostrarMensaje("msgMenu", "No hay inventario activo. Solicita a un Admin iniciar inventario.", "info");
+      } else {
+        limpiarMensaje("msgMenu");
+      }
+    }
+
+    function setMenuCardDisabled(id, disabled) {
+      const card = document.getElementById(id);
+
+      if (disabled) {
+        card.classList.add("disabled");
+      } else {
+        card.classList.remove("disabled");
+      }
+    }
+
+    async function abrirInventarioActivo() {
+      mostrarPantalla("pantallaInventario");
+      await renderInventarioActivo();
+    }
+
+    async function renderInventarioActivo() {
+      limpiarMensaje("msgInventario");
+
+      try {
+        const res = await cargarEstadoInventario(false);
+
+        const box = document.getElementById("estadoInventarioBox");
+        const kpis = document.getElementById("kpisInventario");
+
+        if (!res.hay_inventario_activo) {
+          box.innerHTML = "<strong>No hay inventario activo.</strong><div>Solicita a un administrador iniciar inventario.</div>";
+          kpis.innerHTML = "";
+          return;
+        }
+
+        const inv = res.inventario;
+        const resumen = res.resumen || {};
+
+        box.innerHTML =
+          "<strong>Inventario ID: " + inv.inventario_id + "</strong>" +
+          "<div>Estado: " + inv.estado + "</div>" +
+          "<div>Fecha inicio: " + inv.fecha_inicio + " " + inv.hora_inicio + "</div>" +
+          "<div>Usuario inicio: " + inv.usuario_inicio + "</div>";
+
+        kpis.innerHTML = renderKpis(resumen);
+
+      } catch (error) {
+        mostrarMensaje("msgInventario", error.message, "error");
+      }
+    }
+
+
+    /****************************************************
+     * ESCANEO QR
+     ****************************************************/
+
+    function abrirEscaneoQR() {
+      if (!hayInventarioAbierto()) {
+        mostrarMensaje("msgMenu", "No hay inventario activo. No se puede escanear.", "error");
+        return;
+      }
+
+      limpiarQR();
+      mostrarPantalla("pantallaQR");
     }
 
     async function iniciarScanner() {
+      if (!hayInventarioAbierto()) {
+        mostrarMensaje("msgQR", "No hay inventario activo. No se puede escanear.", "error");
+        return;
+      }
+
       if (scannerActivo) return;
 
-      const btnIniciar = document.getElementById("btnIniciar");
-      const btnDetener = document.getElementById("btnDetener");
+      const btnIniciar = document.getElementById("btnIniciarCamara");
+      const btnDetener = document.getElementById("btnDetenerCamara");
 
       try {
         btnIniciar.disabled = true;
         btnDetener.disabled = true;
+        bloqueoLecturaQR = false;
 
-        mostrarMensaje("Iniciando cámara...", "info");
+        mostrarMensaje("msgQR", "Iniciando cámara...", "info");
 
         if (html5QrCode) {
           try {
@@ -358,18 +1014,17 @@
           }
         }
 
+        document.getElementById("reader").innerHTML = "";
         html5QrCode = new Html5Qrcode("reader");
 
         const config = {
           fps: 10,
           disableFlip: true,
           qrbox: function(viewfinderWidth, viewfinderHeight) {
-            const width = Math.floor(viewfinderWidth * 0.90);
-            const height = Math.floor(width * 0.35);
-
+            const size = Math.floor(Math.min(viewfinderWidth, viewfinderHeight) * 0.82);
             return {
-              width: width,
-              height: height
+              width: size,
+              height: size
             };
           }
         };
@@ -419,13 +1074,12 @@
         }
 
         scannerActivo = true;
-
         btnIniciar.disabled = true;
         btnDetener.disabled = false;
 
         aplicarMejorasCamara();
 
-        mostrarMensaje("Cámara activa. Apunta al código con buena luz, a 15–25 cm.", "info");
+        mostrarMensaje("msgQR", "Cámara activa. Apunta al QR con buena luz.", "info");
 
       } catch (error) {
         scannerActivo = false;
@@ -433,13 +1087,36 @@
         btnIniciar.disabled = false;
         btnDetener.disabled = true;
 
-        mostrarMensaje("No se pudo iniciar la cámara: " + error.message, "error");
+        mostrarMensaje("msgQR", "No se pudo iniciar la cámara: " + error.message, "error");
       }
     }
 
-    async function detenerScanner() {
-      const btnIniciar = document.getElementById("btnIniciar");
-      const btnDetener = document.getElementById("btnDetener");
+    function onScanSuccess(decodedText) {
+      if (bloqueoLecturaQR) return;
+
+      bloqueoLecturaQR = true;
+
+      qrTextoActual = decodedText;
+      qrDatosActuales = parsearQR(decodedText);
+
+      renderPreviewQR();
+
+      mostrarMensaje("msgQR", "QR leído correctamente. Revisa la vista previa y guarda.", "ok");
+
+      if (navigator.vibrate) {
+        navigator.vibrate(120);
+      }
+
+      setTimeout(() => detenerScanner(true), 300);
+    }
+
+    function onScanFailure(errorMessage) {
+      // No mostrar errores mientras busca QR.
+    }
+
+    async function detenerScanner(silencioso) {
+      const btnIniciar = document.getElementById("btnIniciarCamara");
+      const btnDetener = document.getElementById("btnDetenerCamara");
 
       if (!html5QrCode || !scannerActivo) {
         btnIniciar.disabled = false;
@@ -461,7 +1138,9 @@
         btnIniciar.disabled = false;
         btnDetener.disabled = true;
 
-        mostrarMensaje("Cámara detenida.", "info");
+        if (!silencioso) {
+          mostrarMensaje("msgQR", "Cámara detenida.", "info");
+        }
 
       } catch (error) {
         scannerActivo = false;
@@ -469,7 +1148,9 @@
         btnIniciar.disabled = false;
         btnDetener.disabled = true;
 
-        mostrarMensaje("No se pudo detener la cámara: " + error.message, "error");
+        if (!silencioso) {
+          mostrarMensaje("msgQR", "No se pudo detener la cámara: " + error.message, "error");
+        }
       }
     }
 
@@ -505,7 +1186,7 @@
         }
 
         if (capabilities.zoom) {
-          let zoomIdeal = 1.3;
+          let zoomIdeal = 1.2;
 
           if (zoomIdeal > capabilities.zoom.max) {
             zoomIdeal = capabilities.zoom.max;
@@ -528,117 +1209,545 @@
       }, 1200);
     }
 
-    function usarCodigoManual() {
-      const codigoManual = document.getElementById("codigoManual").value.trim();
-
-      if (!codigoManual) {
-        mostrarMensaje("Introduce un código manualmente.", "error");
-        return;
-      }
-
-      codigoActual = codigoManual;
-      document.getElementById("codigoLeido").textContent = codigoManual;
-      mostrarMensaje("Código capturado manualmente.", "ok");
-
-      if (navigator.vibrate) {
-        navigator.vibrate(120);
-      }
-    }
-
-    function guardarRegistro() {
-      const cantidad = document.getElementById("cantidad").value;
-      const usuario = document.getElementById("usuario").value.trim() || "Usuario";
-
-      if (!codigoActual) {
-        mostrarMensaje("Primero escanea un código de barras o captúralo manualmente.", "error");
-        return;
-      }
-
-      if (!cantidad || Number(cantidad) <= 0) {
-        mostrarMensaje("Introduce una cantidad mayor a cero.", "error");
-        return;
-      }
-
-      document.getElementById("btnGuardar").disabled = true;
-      mostrarMensaje("Guardando registro...", "info");
-
-      const callbackName = "cb_" + Date.now();
-
-      window[callbackName] = function(respuesta) {
-        document.getElementById("btnGuardar").disabled = false;
-
-        if (respuesta.ok) {
-          mostrarMensaje(respuesta.mensaje, "ok");
-
-          document.getElementById("ultimo").style.display = "block";
-          document.getElementById("ultimo").innerHTML =
-            "<strong>Último registro guardado:</strong><br>" +
-            "ID: " + respuesta.id + "<br>" +
-            "Fecha: " + respuesta.fecha + " " + respuesta.hora + "<br>" +
-            "Código: " + respuesta.codigoBarras + "<br>" +
-            "Cantidad: " + respuesta.cantidad + "<br>" +
-            "Usuario: " + respuesta.usuario;
-
-          limpiarCamposDespuesDeGuardar();
-
-        } else {
-          mostrarMensaje(respuesta.mensaje, "error");
-        }
-
-        limpiarScriptJSONP(callbackName);
+    function parsearQR(texto) {
+      const datos = {
+        sku: "",
+        ot: "",
+        descripcion: "",
+        kilos: "",
+        mtsl: "",
+        no_rollo: "",
+        proceso: ""
       };
 
-      const url =
-        API_URL +
-        "?action=save" +
-        "&codigoBarras=" + encodeURIComponent(codigoActual) +
-        "&cantidad=" + encodeURIComponent(cantidad) +
-        "&usuario=" + encodeURIComponent(usuario) +
-        "&callback=" + encodeURIComponent(callbackName);
+      const lineas = String(texto || "").split(/\r?\n|;/);
 
-      const script = document.createElement("script");
-      script.src = url;
-      script.id = "jsonp_" + callbackName;
+      lineas.forEach(linea => {
+        const idx = linea.indexOf(":");
 
-      script.onerror = function() {
-        document.getElementById("btnGuardar").disabled = false;
-        mostrarMensaje("Error de conexión con Apps Script.", "error");
-        limpiarScriptJSONP(callbackName);
-      };
+        if (idx === -1) return;
 
-      document.body.appendChild(script);
+        const keyRaw = linea.slice(0, idx).trim();
+        const value = linea.slice(idx + 1).trim();
+
+        const key = normalizarCampo(keyRaw);
+
+        if (key === "SKU") datos.sku = value;
+        if (key === "OT") datos.ot = value;
+        if (key === "DESCRIPCION") datos.descripcion = value;
+        if (key === "KILOS") datos.kilos = value;
+        if (key === "MTSL" || key === "MTS") datos.mtsl = value;
+        if (key === "ROLLO" || key === "NOROLLO") datos.no_rollo = value;
+        if (key === "PROCESO") datos.proceso = value;
+      });
+
+      return datos;
     }
 
-    function limpiarCamposDespuesDeGuardar() {
-      codigoActual = "";
-      document.getElementById("codigoLeido").textContent = "Sin escanear";
-      document.getElementById("codigoManual").value = "";
-      document.getElementById("cantidad").value = "";
+    function normalizarCampo(valor) {
+      return String(valor || "")
+        .trim()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/^#+/g, "")
+        .replace(/\s+/g, "")
+        .replace(/_/g, "")
+        .toUpperCase();
     }
 
-    function limpiarScriptJSONP(callbackName) {
-      const script = document.getElementById("jsonp_" + callbackName);
+    function renderPreviewQR() {
+      const div = document.getElementById("previewQR");
+      const d = qrDatosActuales || {};
 
-      if (script) {
-        script.remove();
+      div.innerHTML =
+        previewRow("OT", d.ot) +
+        previewRow("No. Rollo", d.no_rollo) +
+        previewRow("Proceso", d.proceso) +
+        previewRow("Kilos", d.kilos) +
+        previewRow("SKU", d.sku) +
+        previewRow("Descripción", d.descripcion) +
+        previewRow("Mtsl", d.mtsl);
+    }
+
+    function previewRow(label, value) {
+      return (
+        '<div class="preview-row">' +
+        '<div class="preview-label">' + label + '</div>' +
+        '<div class="preview-value">' + escaparHTML(value || "-") + '</div>' +
+        '</div>'
+      );
+    }
+
+    async function guardarQR() {
+      if (!hayInventarioAbierto()) {
+        mostrarMensaje("msgQR", "No hay inventario activo. No se puede guardar.", "error");
+        return;
+      }
+
+      if (!qrDatosActuales || !qrTextoActual) {
+        mostrarMensaje("msgQR", "Primero escanea un QR.", "error");
+        return;
+      }
+
+      const d = qrDatosActuales;
+
+      if (!d.ot || !d.no_rollo || !d.kilos || !d.proceso) {
+        mostrarMensaje("msgQR", "El QR no contiene todos los datos obligatorios: OT, No. Rollo, Kilos y Proceso.", "error");
+        return;
       }
 
       try {
-        delete window[callbackName];
-      } catch (e) {
-        window[callbackName] = undefined;
+        mostrarMensaje("msgQR", "Guardando escaneo...", "info");
+
+        const res = await apiCall("guardarQR", {
+          usuario: usuarioActual.usuario,
+          qr_texto_original: qrTextoActual,
+          sku: d.sku,
+          ot: d.ot,
+          descripcion: d.descripcion,
+          kilos: d.kilos,
+          mtsl: d.mtsl,
+          no_rollo: d.no_rollo,
+          proceso: d.proceso
+        });
+
+        if (!res.ok) {
+          mostrarMensaje("msgQR", res.mensaje || "No se pudo guardar.", "error");
+          return;
+        }
+
+        mostrarMensaje("msgQR", res.mensaje + " Acción: " + res.accion, "ok");
+
+        limpiarQR();
+
+      } catch (error) {
+        mostrarMensaje("msgQR", error.message, "error");
       }
     }
 
-    function limpiar() {
-      codigoActual = "";
-      document.getElementById("codigoLeido").textContent = "Sin escanear";
-      document.getElementById("codigoManual").value = "";
-      document.getElementById("cantidad").value = "";
-      document.getElementById("ultimo").style.display = "none";
-      mostrarMensaje("Captura limpia. Puedes escanear otro código o capturarlo manualmente.", "info");
-    }
-  </script>
+    function limpiarQR() {
+      qrTextoActual = "";
+      qrDatosActuales = null;
+      bloqueoLecturaQR = false;
 
+      document.getElementById("previewQR").innerHTML =
+        previewRow("OT", "-") +
+        previewRow("No. Rollo", "-") +
+        previewRow("Proceso", "-") +
+        previewRow("Kilos", "-") +
+        previewRow("SKU", "-") +
+        previewRow("Descripción", "-") +
+        previewRow("Mtsl", "-");
+
+      limpiarMensaje("msgQR");
+    }
+
+    async function volverMenuDesdeQR() {
+      await detenerScanner(true);
+      await cargarEstadoInventario(false);
+      renderMenu();
+      mostrarPantalla("pantallaMenu");
+    }
+
+
+    /****************************************************
+     * CAPTURA MANUAL
+     ****************************************************/
+
+    function abrirCapturaManual() {
+      if (!hayInventarioAbierto()) {
+        mostrarMensaje("msgMenu", "No hay inventario activo. No se puede capturar.", "error");
+        return;
+      }
+
+      limpiarManual(true);
+      mostrarPantalla("pantallaManual");
+    }
+
+    async function guardarManual() {
+      if (!hayInventarioAbierto()) {
+        mostrarMensaje("msgManual", "No hay inventario activo. No se puede guardar.", "error");
+        return;
+      }
+
+      const ot = document.getElementById("manualOT").value.trim();
+      const noRollo = document.getElementById("manualRollo").value.trim();
+      const kilos = document.getElementById("manualKilos").value.trim();
+      const proceso = document.getElementById("manualProceso").value.trim();
+
+      if (!ot || !noRollo || !kilos || !proceso) {
+        mostrarMensaje("msgManual", "Captura OT, No. Rollo, Kilos y Proceso.", "error");
+        return;
+      }
+
+      if (Number(kilos) <= 0 || isNaN(Number(kilos))) {
+        mostrarMensaje("msgManual", "Kilos debe ser numérico y mayor a 0.", "error");
+        return;
+      }
+
+      try {
+        mostrarMensaje("msgManual", "Guardando captura manual...", "info");
+
+        const res = await apiCall("guardarManual", {
+          usuario: usuarioActual.usuario,
+          ot: ot,
+          no_rollo: noRollo,
+          kilos: kilos,
+          proceso: proceso
+        });
+
+        if (!res.ok) {
+          mostrarMensaje("msgManual", res.mensaje || "No se pudo guardar.", "error");
+          return;
+        }
+
+        mostrarMensaje("msgManual", res.mensaje + " Acción: " + res.accion, "ok");
+
+        limpiarManual(false);
+
+      } catch (error) {
+        mostrarMensaje("msgManual", error.message, "error");
+      }
+    }
+
+    function limpiarManual(limpiarProceso) {
+      document.getElementById("manualOT").value = "";
+      document.getElementById("manualRollo").value = "";
+      document.getElementById("manualKilos").value = "";
+
+      if (limpiarProceso) {
+        document.getElementById("manualProceso").value = "";
+      }
+
+      limpiarMensaje("msgManual");
+    }
+
+
+    /****************************************************
+     * PANEL ADMIN
+     ****************************************************/
+
+    function abrirPanelAdmin() {
+      if (!esAdmin()) {
+        mostrarMensaje("msgMenu", "Solo Admin puede entrar al Panel Admin.", "error");
+        return;
+      }
+
+      actualizarEtiquetasGlobales();
+      mostrarPantalla("pantallaAdmin");
+    }
+
+    async function iniciarInventario() {
+      if (!esAdmin()) {
+        mostrarMensaje("msgAdmin", "Acción permitida solo para Admin.", "error");
+        return;
+      }
+
+      const confirmado = confirm(
+        "Vas a iniciar un nuevo inventario.\n\n" +
+        "Esto pondrá todos los registros actuales como activo = 0 y estatus = No encontrado.\n\n" +
+        "Esta acción solo debe hacerse una vez por ciclo.\n\n" +
+        "¿Deseas continuar?"
+      );
+
+      if (!confirmado) return;
+
+      const comentarios = document.getElementById("comentarioInventario").value.trim();
+
+      try {
+        mostrarMensaje("msgAdmin", "Iniciando inventario...", "info");
+
+        const res = await apiCall("iniciarInventario", {
+          usuario: usuarioActual.usuario,
+          comentarios: comentarios
+        });
+
+        if (!res.ok) {
+          mostrarMensaje("msgAdmin", res.mensaje || "No se pudo iniciar inventario.", "error");
+          return;
+        }
+
+        inventarioActivo = res.inventario || null;
+
+        mostrarMensaje("msgAdmin", res.mensaje, "ok");
+
+        await cargarEstadoInventario(false);
+        renderMenu();
+        actualizarEtiquetasGlobales();
+
+      } catch (error) {
+        mostrarMensaje("msgAdmin", error.message, "error");
+      }
+    }
+
+    async function cerrarInventario() {
+      if (!esAdmin()) {
+        mostrarMensaje("msgAdmin", "Acción permitida solo para Admin.", "error");
+        return;
+      }
+
+      if (!hayInventarioAbierto()) {
+        mostrarMensaje("msgAdmin", "No hay inventario abierto para cerrar.", "error");
+        return;
+      }
+
+      const confirmado = confirm(
+        "Vas a cerrar el inventario activo.\n\n" +
+        "Después de cerrar ya no se podrán guardar escaneos contra este inventario.\n\n" +
+        "¿Deseas continuar?"
+      );
+
+      if (!confirmado) return;
+
+      try {
+        mostrarMensaje("msgAdmin", "Cerrando inventario...", "info");
+
+        const res = await apiCall("cerrarInventario", {
+          usuario: usuarioActual.usuario
+        });
+
+        if (!res.ok) {
+          mostrarMensaje("msgAdmin", res.mensaje || "No se pudo cerrar inventario.", "error");
+          return;
+        }
+
+        inventarioActivo = null;
+
+        mostrarMensaje("msgAdmin", res.mensaje, "ok");
+
+        await cargarEstadoInventario(false);
+        renderMenu();
+        actualizarEtiquetasGlobales();
+
+      } catch (error) {
+        mostrarMensaje("msgAdmin", error.message, "error");
+      }
+    }
+
+
+    /****************************************************
+     * RESUMEN
+     ****************************************************/
+
+    async function abrirResumen() {
+      mostrarPantalla("pantallaResumen");
+      limpiarMensaje("msgResumen");
+
+      try {
+        const resEstado = await cargarEstadoInventario(false);
+
+        const info = document.getElementById("resumenInfo");
+        const kpis = document.getElementById("resumenKpis");
+
+        if (!resEstado.hay_inventario_activo) {
+          info.innerHTML = "<strong>No hay inventario activo.</strong><div>No hay resumen disponible.</div>";
+          kpis.innerHTML = "";
+          return;
+        }
+
+        const res = await apiCall("resumenInventario", {
+          inventario_id: inventarioActivo.inventario_id
+        });
+
+        if (!res.ok) {
+          mostrarMensaje("msgResumen", res.mensaje || "No se pudo cargar resumen.", "error");
+          return;
+        }
+
+        const inv = res.inventario;
+        const resumen = res.resumen || {};
+
+        info.innerHTML =
+          "<strong>Inventario: " + inv.inventario_id + "</strong>" +
+          "<div>Estado: " + inv.estado + "</div>" +
+          "<div>Inicio: " + inv.fecha_inicio + " " + inv.hora_inicio + "</div>" +
+          "<div>Usuario inicio: " + inv.usuario_inicio + "</div>";
+
+        kpis.innerHTML = renderKpis(resumen);
+
+      } catch (error) {
+        mostrarMensaje("msgResumen", error.message, "error");
+      }
+    }
+
+    function renderKpis(resumen) {
+      return (
+        kpi("Base inicial", resumen.total_base || 0) +
+        kpi("Encontrados", resumen.encontrados || 0) +
+        kpi("Nuevos", resumen.nuevos || 0) +
+        kpi("No encontrados", resumen.no_encontrados || 0) +
+        kpi("Total escaneos", resumen.total_escaneos || 0) +
+        kpi("Avance %", (resumen.avance || 0) + "%")
+      );
+    }
+
+    function kpi(label, value) {
+      return (
+        '<div class="kpi">' +
+        '<span>' + label + '</span>' +
+        '<strong>' + value + '</strong>' +
+        '</div>'
+      );
+    }
+
+
+    /****************************************************
+     * CONSULTA Y EXPORTACIÓN
+     ****************************************************/
+
+    async function abrirConsulta() {
+      mostrarPantalla("pantallaConsulta");
+
+      document.getElementById("btnExportarCSV").style.display = esAdmin() ? "block" : "none";
+
+      actualizarEtiquetasGlobales();
+      await consultarRegistros();
+    }
+
+    async function consultarRegistros() {
+      limpiarMensaje("msgConsulta");
+
+      try {
+        mostrarMensaje("msgConsulta", "Consultando registros...", "info");
+
+        const res = await apiCall("consultarRegistros", {
+          usuario: usuarioActual.usuario,
+          activo: document.getElementById("filtroActivo").value,
+          estatus: document.getElementById("filtroEstatus").value,
+          proceso: document.getElementById("filtroProceso").value
+        });
+
+        if (!res.ok) {
+          mostrarMensaje("msgConsulta", res.mensaje || "No se pudo consultar.", "error");
+          return;
+        }
+
+        registrosConsulta = res.registros || [];
+
+        renderTablaConsulta();
+
+        mostrarMensaje("msgConsulta", "Registros encontrados: " + registrosConsulta.length, "ok");
+
+      } catch (error) {
+        mostrarMensaje("msgConsulta", error.message, "error");
+      }
+    }
+
+    function renderTablaConsulta() {
+      const tbody = document.getElementById("tablaConsulta");
+
+      if (!registrosConsulta.length) {
+        tbody.innerHTML = '<tr><td colspan="11">Sin registros.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = registrosConsulta.map(row => {
+        return (
+          "<tr>" +
+          "<td>" + escaparHTML(row.ot) + "</td>" +
+          "<td>" + escaparHTML(row.no_rollo) + "</td>" +
+          "<td>" + escaparHTML(row.proceso) + "</td>" +
+          "<td>" + escaparHTML(row.kilos) + "</td>" +
+          "<td>" + escaparHTML(row.sku) + "</td>" +
+          "<td>" + escaparHTML(row.descripcion) + "</td>" +
+          "<td>" + escaparHTML(row.activo) + "</td>" +
+          "<td>" + escaparHTML(row.estatus_inventario) + "</td>" +
+          "<td>" + escaparHTML(row.fecha_ultimo_escaneo) + "</td>" +
+          "<td>" + escaparHTML(row.hora_ultimo_escaneo) + "</td>" +
+          "<td>" + escaparHTML(row.usuario_ultimo_escaneo) + "</td>" +
+          "</tr>"
+        );
+      }).join("");
+    }
+
+    function exportarCSV() {
+      if (!esAdmin()) {
+        mostrarMensaje("msgConsulta", "Solo Admin puede exportar CSV.", "error");
+        return;
+      }
+
+      if (!registrosConsulta.length) {
+        mostrarMensaje("msgConsulta", "No hay registros para exportar.", "error");
+        return;
+      }
+
+      const headers = [
+        "ot",
+        "no_rollo",
+        "proceso",
+        "kilos",
+        "sku",
+        "descripcion",
+        "activo",
+        "estatus_inventario",
+        "fecha_ultimo_escaneo",
+        "hora_ultimo_escaneo",
+        "usuario_ultimo_escaneo",
+        "clave_unica"
+      ];
+
+      const rows = registrosConsulta.map(row => {
+        return headers.map(h => csvEscape(row[h])).join(",");
+      });
+
+      const csv = "\ufeff" + headers.join(",") + "\n" + rows.join("\n");
+
+      const blob = new Blob([csv], {
+        type: "text/csv;charset=utf-8;"
+      });
+
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      const inv = inventarioActivo ? inventarioActivo.inventario_id : "sin_inventario";
+      const activo = document.getElementById("filtroActivo").value;
+
+      a.href = url;
+      a.download = "inventario_" + inv + "_activo_" + activo + ".csv";
+      a.click();
+
+      URL.revokeObjectURL(url);
+    }
+
+
+    /****************************************************
+     * UTILIDADES
+     ****************************************************/
+
+    function escaparHTML(valor) {
+      return String(valor === undefined || valor === null ? "" : valor)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function csvEscape(valor) {
+      const texto = String(valor === undefined || valor === null ? "" : valor);
+
+      if (texto.includes(",") || texto.includes('"') || texto.includes("\n")) {
+        return '"' + texto.replace(/"/g, '""') + '"';
+      }
+
+      return texto;
+    }
+
+    window.addEventListener("load", function() {
+      limpiarQR();
+
+      document.getElementById("loginPassword").addEventListener("keydown", function(e) {
+        if (e.key === "Enter") {
+          login();
+        }
+      });
+
+      document.getElementById("loginUsuario").addEventListener("keydown", function(e) {
+        if (e.key === "Enter") {
+          document.getElementById("loginPassword").focus();
+        }
+      });
+    });
+  </script>
 </body>
 </html>
