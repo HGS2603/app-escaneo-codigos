@@ -1091,24 +1091,26 @@
       }
     }
 
-    function onScanSuccess(decodedText) {
-      if (bloqueoLecturaQR) return;
+function onScanSuccess(decodedText) {
+  if (bloqueoLecturaQR) return;
 
-      bloqueoLecturaQR = true;
+  bloqueoLecturaQR = true;
 
-      qrTextoActual = decodedText;
-      qrDatosActuales = parsearQR(decodedText);
+  qrTextoActual = decodedText;
+  qrDatosActuales = parsearQR(decodedText);
 
-      renderPreviewQR();
+  renderPreviewQR();
 
-      mostrarMensaje("msgQR", "QR leído correctamente. Revisa la vista previa y guarda.", "ok");
+  mostrarMensaje("msgQR", "QR leído correctamente. Revisa la vista previa y guarda.", "ok");
 
-      if (navigator.vibrate) {
-        navigator.vibrate(120);
-      }
+  if (navigator.vibrate) {
+    navigator.vibrate(120);
+  }
 
-      setTimeout(() => detenerScanner(true), 300);
-    }
+  // IMPORTANTE:
+  // Ya no detenemos la cámara aquí.
+  // La cámara se queda activa hasta salir de la pantalla.
+}
 
     function onScanFailure(errorMessage) {
       // No mostrar errores mientras busca QR.
@@ -1278,69 +1280,82 @@
       );
     }
 
-    async function guardarQR() {
-      if (!hayInventarioAbierto()) {
-        mostrarMensaje("msgQR", "No hay inventario activo. No se puede guardar.", "error");
-        return;
-      }
+async function guardarQR() {
+  if (!hayInventarioAbierto()) {
+    mostrarMensaje("msgQR", "No hay inventario activo. No se puede guardar.", "error");
+    return;
+  }
 
-      if (!qrDatosActuales || !qrTextoActual) {
-        mostrarMensaje("msgQR", "Primero escanea un QR.", "error");
-        return;
-      }
+  if (!qrDatosActuales || !qrTextoActual) {
+    mostrarMensaje("msgQR", "Primero escanea un QR.", "error");
+    return;
+  }
 
-      const d = qrDatosActuales;
+  const d = qrDatosActuales;
 
-      if (!d.ot || !d.no_rollo || !d.kilos || !d.proceso) {
-        mostrarMensaje("msgQR", "El QR no contiene todos los datos obligatorios: OT, No. Rollo, Kilos y Proceso.", "error");
-        return;
-      }
+  if (!d.ot || !d.no_rollo || !d.kilos || !d.proceso) {
+    mostrarMensaje("msgQR", "El QR no contiene todos los datos obligatorios: OT, No. Rollo, Kilos y Proceso.", "error");
+    return;
+  }
 
-      try {
-        mostrarMensaje("msgQR", "Guardando escaneo...", "info");
+  try {
+    mostrarMensaje("msgQR", "Guardando escaneo...", "info");
 
-        const res = await apiCall("guardarQR", {
-          usuario: usuarioActual.usuario,
-          qr_texto_original: qrTextoActual,
-          sku: d.sku,
-          ot: d.ot,
-          descripcion: d.descripcion,
-          kilos: d.kilos,
-          mtsl: d.mtsl,
-          no_rollo: d.no_rollo,
-          proceso: d.proceso
-        });
+    const res = await apiCall("guardarQR", {
+      usuario: usuarioActual.usuario,
+      qr_texto_original: qrTextoActual,
+      sku: d.sku,
+      ot: d.ot,
+      descripcion: d.descripcion,
+      kilos: d.kilos,
+      mtsl: d.mtsl,
+      no_rollo: d.no_rollo,
+      proceso: d.proceso
+    });
 
-        if (!res.ok) {
-          mostrarMensaje("msgQR", res.mensaje || "No se pudo guardar.", "error");
-          return;
-        }
-
-        mostrarMensaje("msgQR", res.mensaje + " Acción: " + res.accion, "ok");
-
-        limpiarQR();
-
-      } catch (error) {
-        mostrarMensaje("msgQR", error.message, "error");
-      }
+    if (!res.ok) {
+      mostrarMensaje("msgQR", res.mensaje || "No se pudo guardar.", "error");
+      return;
     }
 
-    function limpiarQR() {
-      qrTextoActual = "";
-      qrDatosActuales = null;
+    mostrarMensaje(
+      "msgQR",
+      res.mensaje + " Acción: " + res.accion + ". Cámara activa para el siguiente QR.",
+      "ok"
+    );
+
+    limpiarQR(true, 1200);
+
+  } catch (error) {
+    mostrarMensaje("msgQR", error.message, "error");
+  }
+}
+
+    function limpiarQR(conservarMensaje = false, delayUnlock = 0) {
+  qrTextoActual = "";
+  qrDatosActuales = null;
+
+  if (delayUnlock > 0) {
+    setTimeout(function() {
       bloqueoLecturaQR = false;
+    }, delayUnlock);
+  } else {
+    bloqueoLecturaQR = false;
+  }
 
-      document.getElementById("previewQR").innerHTML =
-        previewRow("OT", "-") +
-        previewRow("No. Rollo", "-") +
-        previewRow("Proceso", "-") +
-        previewRow("Kilos", "-") +
-        previewRow("SKU", "-") +
-        previewRow("Descripción", "-") +
-        previewRow("Mtsl", "-");
+  document.getElementById("previewQR").innerHTML =
+    previewRow("OT", "-") +
+    previewRow("No. Rollo", "-") +
+    previewRow("Proceso", "-") +
+    previewRow("Kilos", "-") +
+    previewRow("SKU", "-") +
+    previewRow("Descripción", "-") +
+    previewRow("Mtsl", "-");
 
-      limpiarMensaje("msgQR");
-    }
+  if (!conservarMensaje) {
+    limpiarMensaje("msgQR");
+  }
+}
 
     async function volverMenuDesdeQR() {
       await detenerScanner(true);
