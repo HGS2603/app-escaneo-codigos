@@ -357,6 +357,114 @@
       margin: 14px 0;
     }
 
+
+    .check-auto {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 12px 0;
+  padding: 12px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  font-weight: bold;
+}
+
+.check-auto input {
+  width: 24px;
+  height: 24px;
+  margin: 0;
+}
+
+.overlay-auto {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.78);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 20px;
+}
+
+.overlay-auto.oculto {
+  display: none;
+}
+
+.overlay-card {
+  width: 100%;
+  max-width: 320px;
+  background: #ffffff;
+  border-radius: 22px;
+  padding: 22px;
+  text-align: center;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.45);
+}
+
+.overlay-circle {
+  width: 160px;
+  height: 160px;
+  margin: 0 auto 16px;
+  border-radius: 50%;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #064e3b;
+  font-size: 20px;
+  font-weight: bold;
+  background: #dcfce7;
+}
+
+.overlay-ring {
+  position: absolute;
+  inset: -8px;
+  border-radius: 50%;
+  border: 8px solid rgba(34, 197, 94, 0.18);
+  border-top-color: #16a34a;
+  animation: spinAuto 0.85s linear infinite;
+}
+
+.overlay-auto.error .overlay-circle {
+  background: #fee2e2;
+  color: #7f1d1d;
+}
+
+.overlay-auto.error .overlay-ring {
+  border-color: rgba(220, 38, 38, 0.25);
+  border-top-color: #dc2626;
+  animation: none;
+}
+
+.overlay-texto {
+  position: relative;
+  z-index: 2;
+}
+
+.overlay-detalle {
+  font-size: 15px;
+  font-weight: bold;
+  color: #111827;
+  margin-top: 6px;
+}
+
+.overlay-hint {
+  font-size: 13px;
+  color: #6b7280;
+  margin-top: 10px;
+}
+
+@keyframes spinAuto {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+    
     @media (max-width: 420px) {
       body {
         padding: 8px;
@@ -507,6 +615,11 @@
           <button class="btn btn-danger" id="btnDetenerCamara" onclick="detenerScanner(false)" disabled>Detener</button>
         </div>
 
+         <label class="check-auto">
+  <input id="chkAutoGuardar" type="checkbox" />
+  Guardar automáticamente al escanear
+</label>
+        
         <div class="preview">
           <h3>Datos detectados</h3>
           <div id="previewQR"></div>
@@ -665,6 +778,19 @@
 
   </div>
 
+
+  <div id="overlayAuto" class="overlay-auto oculto" onclick="cerrarOverlayAutoError()">
+  <div class="overlay-card">
+    <div class="overlay-circle">
+      <div class="overlay-ring"></div>
+      <div id="overlayTexto" class="overlay-texto">Guardando</div>
+    </div>
+    <div id="overlayDetalle" class="overlay-detalle">Procesando escaneo...</div>
+    <div id="overlayHint" class="overlay-hint"></div>
+  </div>
+</div>
+
+  
   <script>
     /****************************************************
      * CONFIGURACIÓN
@@ -683,7 +809,11 @@
     let bloqueoLecturaQR = false;
 
     let registrosConsulta = [];
-
+    let guardadoAutomaticoEnProceso = false;
+let overlayAutoEnError = false;
+let ultimoQRAutoTexto = "";
+let ultimoQRAutoMs = 0;
+const COOLDOWN_AUTO_MS = 3000;
 
     /****************************************************
      * API JSONP
@@ -1094,6 +1224,22 @@
 function onScanSuccess(decodedText) {
   if (bloqueoLecturaQR) return;
 
+  const modoAuto = modoAutoGuardarActivo();
+
+  if (modoAuto) {
+    const ahoraMs = Date.now();
+
+    if (
+      decodedText === ultimoQRAutoTexto &&
+      ahoraMs - ultimoQRAutoMs < COOLDOWN_AUTO_MS
+    ) {
+      return;
+    }
+
+    ultimoQRAutoTexto = decodedText;
+    ultimoQRAutoMs = ahoraMs;
+  }
+
   bloqueoLecturaQR = true;
 
   qrTextoActual = decodedText;
@@ -1101,15 +1247,15 @@ function onScanSuccess(decodedText) {
 
   renderPreviewQR();
 
-  mostrarMensaje("msgQR", "QR leído correctamente. Revisa la vista previa y guarda.", "ok");
-
   if (navigator.vibrate) {
     navigator.vibrate(120);
   }
 
-  // IMPORTANTE:
-  // Ya no detenemos la cámara aquí.
-  // La cámara se queda activa hasta salir de la pantalla.
+  if (modoAuto) {
+    guardarQRAutomatico();
+  } else {
+    mostrarMensaje("msgQR", "QR leído correctamente. Revisa la vista previa y guarda.", "ok");
+  }
 }
 
     function onScanFailure(errorMessage) {
@@ -1281,15 +1427,28 @@ function onScanSuccess(decodedText) {
     }
 
 async function guardarQR() {
-  if (!hayInventarioAbierto()) {
-    mostrarMensaje("msgQR", "No hay inventario activo. No se puede guardar.", "error");
-    return;
-  }
+  try {
+    mostrarMensaje("msgQR", "Guardando escaneo...", "info");
 
-  if (!qrDatosActuales || !qrTextoActual) {
-    mostrarMensaje("msgQR", "Primero escanea un QR.", "error");
-    return;
+    const res = await guardarQRBackend();
+
+    if (!res.ok) {
+      mostrarMensaje("msgQR", res.mensaje || "No se pudo guardar.", "error");
+      return;
+    }
+
+    mostrarMensaje(
+      "msgQR",
+      res.mensaje + " Acción: " + res.accion + ". Cámara activa para el siguiente QR.",
+      "ok"
+    );
+
+    limpiarQR(true, 1200);
+
+  } catch (error) {
+    mostrarMensaje("msgQR", error.message, "error");
   }
+}
 
   const d = qrDatosActuales;
 
@@ -1331,7 +1490,7 @@ async function guardarQR() {
   }
 }
 
-    function limpiarQR(conservarMensaje = false, delayUnlock = 0) {
+   function limpiarQR(conservarMensaje = false, delayUnlock = 0) {
   qrTextoActual = "";
   qrDatosActuales = null;
 
@@ -1356,7 +1515,6 @@ async function guardarQR() {
     limpiarMensaje("msgQR");
   }
 }
-
     async function volverMenuDesdeQR() {
       await detenerScanner(true);
       await cargarEstadoInventario(false);
@@ -1724,7 +1882,137 @@ async function guardarQR() {
       URL.revokeObjectURL(url);
     }
 
+function modoAutoGuardarActivo() {
+  const chk = document.getElementById("chkAutoGuardar");
+  return chk && chk.checked === true;
+}
 
+async function guardarQRAutomatico() {
+  if (guardadoAutomaticoEnProceso) return;
+
+  guardadoAutomaticoEnProceso = true;
+  overlayAutoEnError = false;
+
+  mostrarOverlayAuto("guardando", "Guardando", "Procesando escaneo...");
+
+  try {
+    const res = await guardarQRBackend();
+
+    if (!res.ok) {
+      overlayAutoEnError = true;
+
+      mostrarOverlayAuto(
+        "error",
+        "No guardado",
+        res.mensaje || "No se pudo guardar el registro."
+      );
+
+      mostrarMensaje("msgQR", res.mensaje || "No se pudo guardar.", "error");
+      return;
+    }
+
+    mostrarMensaje(
+      "msgQR",
+      res.mensaje + " Acción: " + res.accion + ". Listo para el siguiente QR.",
+      "ok"
+    );
+
+    setTimeout(function() {
+      ocultarOverlayAuto();
+      limpiarQR(true, 500);
+      guardadoAutomaticoEnProceso = false;
+    }, 900);
+
+  } catch (error) {
+    overlayAutoEnError = true;
+
+    mostrarOverlayAuto(
+      "error",
+      "No guardado",
+      error.message || "Error al guardar."
+    );
+
+    mostrarMensaje("msgQR", error.message, "error");
+  }
+}
+
+async function guardarQRBackend() {
+  if (!hayInventarioAbierto()) {
+    return {
+      ok: false,
+      mensaje: "No hay inventario activo. No se puede guardar."
+    };
+  }
+
+  if (!qrDatosActuales || !qrTextoActual) {
+    return {
+      ok: false,
+      mensaje: "Primero escanea un QR."
+    };
+  }
+
+  const d = qrDatosActuales;
+
+  if (!d.ot || !d.no_rollo || !d.kilos || !d.proceso) {
+    return {
+      ok: false,
+      mensaje: "El QR no contiene todos los datos obligatorios: OT, No. Rollo, Kilos y Proceso."
+    };
+  }
+
+  const res = await apiCall("guardarQR", {
+    usuario: usuarioActual.usuario,
+    qr_texto_original: qrTextoActual,
+    sku: d.sku,
+    ot: d.ot,
+    descripcion: d.descripcion,
+    kilos: d.kilos,
+    mtsl: d.mtsl,
+    no_rollo: d.no_rollo,
+    proceso: d.proceso
+  });
+
+  return res;
+}
+
+function mostrarOverlayAuto(tipo, titulo, detalle) {
+  const overlay = document.getElementById("overlayAuto");
+  const texto = document.getElementById("overlayTexto");
+  const detalleEl = document.getElementById("overlayDetalle");
+  const hint = document.getElementById("overlayHint");
+
+  overlay.className = "overlay-auto";
+
+  if (tipo === "error") {
+    overlay.classList.add("error");
+    hint.textContent = "Presiona Enter o toca aquí para continuar.";
+  } else {
+    hint.textContent = "";
+  }
+
+  texto.textContent = titulo;
+  detalleEl.textContent = detalle || "";
+
+  overlay.classList.remove("oculto");
+}
+
+function ocultarOverlayAuto() {
+  const overlay = document.getElementById("overlayAuto");
+  overlay.className = "overlay-auto oculto";
+}
+
+function cerrarOverlayAutoError() {
+  if (!overlayAutoEnError) return;
+
+  ocultarOverlayAuto();
+
+  overlayAutoEnError = false;
+  guardadoAutomaticoEnProceso = false;
+
+  limpiarQR(false, 0);
+
+  mostrarMensaje("msgQR", "Listo para escanear otro QR.", "info");
+}
     /****************************************************
      * UTILIDADES
      ****************************************************/
@@ -1761,6 +2049,13 @@ async function guardarQR() {
         if (e.key === "Enter") {
           document.getElementById("loginPassword").focus();
         }
+
+document.addEventListener("keydown", function(e) {
+  if (e.key === "Enter" && overlayAutoEnError) {
+    cerrarOverlayAutoError();
+  }
+});
+        
       });
     });
   </script>
